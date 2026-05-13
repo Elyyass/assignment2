@@ -9,17 +9,25 @@ Dieses Projekt implementiert eine vollständige Data-Science-Pipeline zur Vorher
 - **Team Members:** Samuel Atama, Malik Yildizhan, Santiago Meijide, Julian Soady, Elyas Mouhkli
 - **Target Group:** WIMBIT23A
 
+## Requirements
+
+Zur Ausführung der Skripte werden folgende Python-Bibliotheken benötigt:
+
+- pandas: Zur Datenmanipulation und Analyse der CSV-Dateien.
+- scikit-learn: Für das Training des Machine Learning Modells (Random Forest Regressor).
+- matplotlib & seaborn: Zur Visualisierung der Datenverteilungen und Vorhersagen.
+- reportlab: Zur automatischen Generierung des geforderten PDF-Berichts.
+- tabulate: Zur Formatierung von Tabellendaten innerhalb der Skripte.
+
 ## Inhalte
 
 - `test.py`: Vollständiges Python-Skript mit Datenaufbereitung, Modelltraining, Evaluation und Ranking.
 - `outputs/`: Automatisch erzeugte Ergebnisse (CSV, PNG und Report).
-- `requirements.txt`: Abhängigkeiten für die Ausführung.
 
 ## Ausführung
 
 1. Virtuelle Umgebung aktivieren.
-2. Abhängigkeiten installieren: `pip install -r requirements.txt`
-3. Script starten: `python test.py`
+2. Script starten: `python test.py`
 
 ## Ergebnisse
 
