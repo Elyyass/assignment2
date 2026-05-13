@@ -17,9 +17,11 @@ from reportlab.platypus import (
 )
 
 BASE_DIR = Path(__file__).resolve().parent
-OUTPUT_DIR = BASE_DIR / "outputs"
-MD_PATH = OUTPUT_DIR / "recommendation_report.md"
-PDF_PATH = OUTPUT_DIR / "recommendation_report.pdf"
+ROOT_DIR = BASE_DIR.parent
+OUTPUT_DIR = ROOT_DIR / "outputs"
+REPORT_DIR = OUTPUT_DIR / "other"
+MD_PATH = REPORT_DIR / "recommendation_report.md"
+PDF_PATH = REPORT_DIR / "recommendation_report.pdf"
 
 TITLE = "Programming Assignment 2"
 SUBTITLE = "CoffeeTime Standortanalyse"
@@ -115,7 +117,7 @@ def build_story(page_width: float) -> list:
 
 
 def main() -> None:
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    REPORT_DIR.mkdir(parents=True, exist_ok=True)
     doc = SimpleDocTemplate(
         str(PDF_PATH),
         pagesize=A4,

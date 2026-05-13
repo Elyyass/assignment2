@@ -19,8 +19,12 @@ from sklearn.preprocessing import OneHotEncoder, PolynomialFeatures, StandardSca
 matplotlib.use("Agg")
 
 
+ROOT_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = Path(__file__).resolve().parent
-OUTPUT_DIR = DATA_DIR / "outputs"
+OUTPUT_DIR = ROOT_DIR / "outputs"
+CSV_DIR = OUTPUT_DIR / "csv"
+PNG_DIR = OUTPUT_DIR / "png"
+OTHER_DIR = OUTPUT_DIR / "other"
 RANDOM_STATE = 42
 
 
@@ -135,9 +139,9 @@ def select_best_model(results: list[ModelResult]) -> ModelResult:
 
 
 def save_plots(
-	stores: pd.DataFrame, predictions: pd.Series, output_dir: Path
+	stores: pd.DataFrame, predictions: pd.Series, png_dir: Path
 ) -> None:
-	output_dir.mkdir(parents=True, exist_ok=True)
+	png_dir.mkdir(parents=True, exist_ok=True)
 
 	plt.figure(figsize=(8, 5))
 	sns.histplot(stores["monthly_profit"], kde=True, bins=30)
@@ -145,7 +149,7 @@ def save_plots(
 	plt.xlabel("Monthly Profit")
 	plt.ylabel("Count")
 	plt.tight_layout()
-	plt.savefig(output_dir / "monthly_profit_distribution.png")
+	plt.savefig(png_dir / "monthly_profit_distribution.png")
 	plt.close()
 
 	plt.figure(figsize=(8, 5))
@@ -154,14 +158,14 @@ def save_plots(
 	plt.xlabel("Predicted Monthly Profit")
 	plt.ylabel("Count")
 	plt.tight_layout()
-	plt.savefig(output_dir / "predicted_profit_distribution.png")
+	plt.savefig(png_dir / "predicted_profit_distribution.png")
 	plt.close()
 
 
 def write_report(
-	top_locations: pd.DataFrame, metrics: pd.DataFrame, output_dir: Path
+	top_locations: pd.DataFrame, metrics: pd.DataFrame, other_dir: Path
 ) -> None:
-	report_path = output_dir / "recommendation_report.md"
+	report_path = other_dir / "recommendation_report.md"
 	top_table = top_locations.to_markdown(index=False)
 	metrics_table = metrics.to_markdown(index=False)
 
@@ -197,6 +201,9 @@ aktuelle Marktbeobachtungen berücksichtigen.
 
 def main() -> None:
 	OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+	CSV_DIR.mkdir(parents=True, exist_ok=True)
+	PNG_DIR.mkdir(parents=True, exist_ok=True)
+	OTHER_DIR.mkdir(parents=True, exist_ok=True)
 
 	stores, locations = load_data()
 	stores, X, y, X_locations, feature_cols = prepare_datasets(stores, locations)
@@ -255,16 +262,17 @@ def main() -> None:
 		]
 	)
 
-	metrics_df.to_csv(OUTPUT_DIR / "model_metrics.csv", index=False)
-	locations_scored.to_csv(OUTPUT_DIR / "predicted_locations.csv", index=False)
-	top_locations.to_csv(OUTPUT_DIR / "top_5_recommendations.csv", index=False)
+	metrics_df.to_csv(CSV_DIR / "model_metrics.csv", index=False)
+	locations_scored.to_csv(CSV_DIR / "predicted_locations.csv", index=False)
+	top_locations.to_csv(CSV_DIR / "top_5_recommendations.csv", index=False)
 
-	save_plots(stores, pd.Series(location_predictions), OUTPUT_DIR)
-	write_report(top_locations, metrics_df, OUTPUT_DIR)
+	save_plots(stores, pd.Series(location_predictions), PNG_DIR)
+	write_report(top_locations, metrics_df, OTHER_DIR)
 
 	print("Pipeline abgeschlossen.")
-	print("Top-5-Empfehlungen gespeichert in outputs/top_5_recommendations.csv")
-	print("Report gespeichert in outputs/recommendation_report.md")
+	print("CSV-Ergebnisse gespeichert in outputs/csv/")
+	print("Plot-Dateien gespeichert in outputs/png/")
+	print("Bericht gespeichert in outputs/other/recommendation_report.md")
 
 
 if __name__ == "__main__":
