@@ -26,7 +26,7 @@ PDF_PATH = REPORT_DIR / "recommendation_report.pdf"
 TITLE = "Programming Assignment 2"
 SUBTITLE = "CoffeeTime Standortanalyse"
 COURSE = "Kurs IMBIT23A"
-AUTHORS = "Elyas Moukhli, Samuel Atama, Malik Yildizhan, Santiago Mehjide"
+AUTHORS = "Samuel Atama, Malik Yildizhan, Santiago Meijide, Julian Soady, Elyas Mouhkli"
 
 
 def is_table_separator(line: str) -> bool:

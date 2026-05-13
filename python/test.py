@@ -11,7 +11,7 @@ import seaborn as sns
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, PolynomialFeatures, StandardScaler
@@ -33,6 +33,7 @@ class ModelResult:
 	name: str
 	pipeline: Pipeline
 	mse: float
+	mae: float
 	r2: float
 
 
@@ -48,7 +49,7 @@ def prepare_datasets(
 	stores = stores.copy()
 	locations = locations.copy()
 
-	stores["monthly_profit"] = stores["monthly_revenue"] - stores["monthly_costs"]
+	stores["annual_turnover_kEUR"] = stores["monthly_revenue"] * 12
 
 	if "country" not in locations.columns:
 		locations["country"] = "Germany"
@@ -65,7 +66,7 @@ def prepare_datasets(
 		"monthly_costs",
 		"monthly_fixed_costs",
 		"monthly_variable_costs",
-		"monthly_profit",
+		"annual_turnover_kEUR",
 		"property_sqft",
 	}
 
@@ -77,7 +78,7 @@ def prepare_datasets(
 			feature_cols.append("square_meters")
 
 	X = stores[feature_cols]
-	y = stores["monthly_profit"]
+	y = stores["annual_turnover_kEUR"]
 	X_locations = locations[feature_cols]
 
 	return stores, X, y, X_locations, feature_cols
@@ -130,8 +131,9 @@ def evaluate_model(
 	pipeline.fit(X_train, y_train)
 	predictions = pipeline.predict(X_test)
 	mse = mean_squared_error(y_test, predictions)
+	mae = mean_absolute_error(y_test, predictions)
 	r2 = r2_score(y_test, predictions)
-	return ModelResult(name=name, pipeline=pipeline, mse=mse, r2=r2)
+	return ModelResult(name=name, pipeline=pipeline, mse=mse, mae=mae, r2=r2)
 
 
 def select_best_model(results: list[ModelResult]) -> ModelResult:
@@ -144,18 +146,18 @@ def save_plots(
 	png_dir.mkdir(parents=True, exist_ok=True)
 
 	plt.figure(figsize=(8, 5))
-	sns.histplot(stores["monthly_profit"], kde=True, bins=30)
-	plt.title("Distribution der monatlichen Profitabilität")
-	plt.xlabel("Monthly Profit")
+	sns.histplot(stores["annual_turnover_kEUR"], kde=True, bins=30)
+	plt.title("Verteilung des jährlichen Umsatzes (kEUR)")
+	plt.xlabel("Annual Turnover (kEUR)")
 	plt.ylabel("Count")
 	plt.tight_layout()
-	plt.savefig(png_dir / "monthly_profit_distribution.png")
+	plt.savefig(png_dir / "annual_turnover_distribution.png")
 	plt.close()
 
 	plt.figure(figsize=(8, 5))
 	sns.histplot(predictions, kde=True, bins=30, color="tab:green")
-	plt.title("Vorhergesagte Profitabilität (Potenzialstandorte)")
-	plt.xlabel("Predicted Monthly Profit")
+	plt.title("Vorhergesagter jährlicher Umsatz (kEUR) für Potenzialstandorte")
+	plt.xlabel("Predicted Annual Turnover (kEUR)")
 	plt.ylabel("Count")
 	plt.tight_layout()
 	plt.savefig(png_dir / "predicted_profit_distribution.png")
@@ -178,7 +180,7 @@ trainiert. Das beste Modell wurde anhand des $R^2$-Wertes auf dem Testdatensatz 
 ### Modellgüte
 {metrics_table}
 
-### Top 5 Standorte nach vorhergesagter Profitabilität
+### Top 10 Standorte nach vorhergesagter Umsatzprognose
 {top_table}
 
 ## Grenzen und reale Einflussfaktoren
@@ -233,6 +235,7 @@ def main() -> None:
 			{
 				"model": result.name,
 				"mse": round(result.mse, 2),
+				"mae": round(result.mae, 2),
 				"r2": round(result.r2, 4),
 			}
 			for result in results
@@ -242,17 +245,17 @@ def main() -> None:
 	best_model.pipeline.fit(X, y)
 	location_predictions = best_model.pipeline.predict(X_locations)
 	locations_scored = locations.copy()
-	locations_scored["predicted_monthly_profit"] = location_predictions
+	locations_scored["predicted_annual_turnover_kEUR"] = location_predictions
 
 	top_locations = (
-		locations_scored.sort_values("predicted_monthly_profit", ascending=False)
-		.head(5)
+		locations_scored.sort_values("predicted_annual_turnover_kEUR", ascending=False)
+		.head(10)
 		.loc[
 			:,
 			[
 				"potential_location_id",
 				"city",
-				"predicted_monthly_profit",
+				"predicted_annual_turnover_kEUR",
 				"population_density",
 				"median_household_income",
 				"number_of_competitors_1km",
@@ -264,7 +267,7 @@ def main() -> None:
 
 	metrics_df.to_csv(CSV_DIR / "model_metrics.csv", index=False)
 	locations_scored.to_csv(CSV_DIR / "predicted_locations.csv", index=False)
-	top_locations.to_csv(CSV_DIR / "top_5_recommendations.csv", index=False)
+	top_locations.to_csv(CSV_DIR / "top_10_recommendations.csv", index=False)
 
 	save_plots(stores, pd.Series(location_predictions), PNG_DIR)
 	write_report(top_locations, metrics_df, OTHER_DIR)
@@ -273,6 +276,7 @@ def main() -> None:
 	print("CSV-Ergebnisse gespeichert in outputs/csv/")
 	print("Plot-Dateien gespeichert in outputs/png/")
 	print("Bericht gespeichert in outputs/other/recommendation_report.md")
+	print("Top-10-Empfehlungen gespeichert in outputs/csv/top_10_recommendations.csv")
 
 
 if __name__ == "__main__":
