@@ -33,8 +33,8 @@ class ModelResult:
 
 
 def load_data() -> tuple[pd.DataFrame, pd.DataFrame]:
-	stores = pd.read_csv(DATA_DIR / "coffee_chain_stores_2024.csv")
-	locations = pd.read_csv(DATA_DIR / "Potential Store Locations Germany.csv")
+	stores = pd.read_csv(DATA_DIR / "../files/coffee_chain_stores_2024.csv")
+	locations = pd.read_csv(DATA_DIR / "../files/potential_store_locations_germany.csv")
 	return stores, locations
 
 

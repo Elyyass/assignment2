@@ -1,0 +1,3 @@
+model,mse,r2
+Linear,1472075.91,0.5585
+Polynomial,2843802.65,0.1471
